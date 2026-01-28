@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Image Generator Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#0a0f1f,#111a33);
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+.box{
+    max-width:750px;
+    margin:auto;
+    background:#121b2e;
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 0 25px rgba(0,255,255,0.1);
+}
+h1{color:#00eaff;}
+input,select,button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border-radius:8px;
+    border:none;
+    font-size:15px;
+}
+input,select{ background:#1c2742; color:white; }
+
+button{
+    background:#00eaff;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+}
+button:hover{ opacity:0.8; }
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;
+    margin-top:20px;
+}
+
+.imageBox{position:relative;}
+img{width:100%;border-radius:10px;}
+
+.download{
+    position:absolute;
+    bottom:5px;
+    right:5px;
+    background:#000a;
+    border:none;
+    color:white;
+    padding:5px 8px;
+    border-radius:6px;
+    font-size:12px;
+    cursor:pointer;
+}
+
+.history{
+    margin-top:25px;
+    text-align:left;
+    font-size:13px;
+    max-height:100px;
+    overflow:auto;
+}
+.loader{display:none;margin-top:15px;color:#00eaff;}
+</style>
+</head>
+<body>
+
+<h1>AI Image Generator</h1>
+
+<div class="box">
+
+<input type="text" id="prompt" placeholder="Describe image..." />
+<input type="text" id="negative" placeholder="Avoid (blurry, bad face etc)" />
+
+<div class="controls">
+<select id="style">
+    <option value="">Normal</option>
+    <option value="anime illustration, vibrant colors">Anime</option>
+    <option value="ultra realistic photo, 4k, DSLR">Realistic</option>
+    <option value="cyberpunk neon futuristic city">Cyberpunk</option>
+    <option value="fantasy magic detailed art">Fantasy</option>
+    <option value="minimal logo vector design">Logo</option>
+</select>
+
+<select id="size">
+    <option value="512x512">512x512</option>
+    <option value="768x768">768x768</option>
+    <option value="1024x1024">1024x1024</option>
+</select>
+</div>
+
+<div class="controls">
+<select id="count">
+    <option value="1">1 Image</option>
+    <option value="2">2 Images</option>
+    <option value="4" selected>4 Images</option>
+</select>
+
+<button onclick="clearGallery()">Clear</button>
+</div>
+
+<button onclick="generateImages()">Generate Image</button>
+
+<div class="loader" id="loader">Generating...</div>
+<div class="gallery" id="gallery"></div>
+
+<div class="history">
+<b>Prompt History:</b>
+<ul id="historyList"></ul>
+</div>
+
+</div>
+
+<script>
+function generateImages(){
+    const prompt = document.getElementById("prompt").value;
+    const negative = document.getElementById("negative").value;
+    const style = document.getElementById("style").value;
+    const size = document.getElementById("size").value;
+    const count = document.getElementById("count").value;
+    const gallery = document.getElementById("gallery");
+    const loader = document.getElementById("loader");
+    const historyList = document.getElementById("historyList");
+
+    if(!prompt){ alert("Prompt likho"); return; }
+
+    loader.style.display="block";
+
+    const finalPrompt = encodeURIComponent(
+        prompt + ", " + style + ", high quality, detailed --no " + negative
+    );
+
+    for(let i=0;i<count;i++){
+        const imgBox=document.createElement("div");
+        imgBox.className="imageBox";
+
+        const img=document.createElement("img");
+        img.src=`https://image.pollinations.ai/prompt/${finalPrompt}?seed=${Math.random()}&width=${size.split("x")[0]}&height=${size.split("x")[1]}`;
+
+        const btn=document.createElement("button");
+        btn.innerText="Download";
+        btn.className="download";
+        btn.onclick=()=>downloadImage(img.src);
+
+        img.onload=()=>loader.style.display="none";
+
+        imgBox.appendChild(img);
+        imgBox.appendChild(btn);
+        gallery.appendChild(imgBox);
+    }
+
+    const li=document.createElement("li");
+    li.textContent=prompt+" ("+style+")";
+    historyList.prepend(li);
+}
+
+function clearGallery(){
+    document.getElementById("gallery").innerHTML="";
+}
+
+function downloadImage(url){
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="ai-image.png";
+    a.click();
+}
+</script>
+
+</body>
+</html>
